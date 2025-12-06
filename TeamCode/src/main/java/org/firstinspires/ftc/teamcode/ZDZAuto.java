@@ -62,9 +62,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
  * main robot "loop," continuously checking for conditions that allow us to move to the next step.
  */
 
-@Autonomous(name="StarterBotAuto", group="StarterBot")
+@Autonomous(name="0Div0-Auto", group="ZeroDividedByZero")
 //@Disabled
-public class ZeroDividedByZeroAuto extends OpMode
+public class ZDZAuto extends OpMode
 {
 
     final double FEED_TIME = 0.20; //The feeder servos run this long when a shot is requested.
@@ -114,12 +114,7 @@ public class ZeroDividedByZeroAuto extends OpMode
     private ElapsedTime feederTimer = new ElapsedTime();
     private ElapsedTime driveTimer = new ElapsedTime();
 
-    // Declare OpMode members.
-    private DcMotor leftDrive = null;
-    private DcMotor rightDrive = null;
-    private DcMotorEx launcher = null;
-    private CRServo leftFeeder = null;
-    private CRServo rightFeeder = null;
+    private ZDZHardware hardware;
 
     /*
      * TECH TIP: State Machines
@@ -186,16 +181,7 @@ public class ZeroDividedByZeroAuto extends OpMode
         launchState = LaunchState.IDLE;
 
 
-        /*
-         * Initialize the hardware variables. Note that the strings used here as parameters
-         * to 'get' must correspond to the names assigned during the robot configuration
-         * step (using the FTC Robot Controller app on the driver's station).
-         */
-        leftDrive  = hardwareMap.get(DcMotor.class, "left_drive");
-        rightDrive = hardwareMap.get(DcMotor.class, "right_drive");
-        launcher = hardwareMap.get(DcMotorEx.class,"launcher");
-        leftFeeder = hardwareMap.get(CRServo.class, "left_feeder");
-        rightFeeder = hardwareMap.get(CRServo.class, "right_feeder");
+        hardware = new ZDZHardware(hardwareMap);
 
 
         /*
@@ -205,23 +191,23 @@ public class ZeroDividedByZeroAuto extends OpMode
          * Note: The settings here assume direct drive on left and right wheels. Gear
          * Reduction or 90° drives may require direction flips
          */
-        leftDrive.setDirection(DcMotor.Direction.REVERSE);
-        rightDrive.setDirection(DcMotor.Direction.FORWARD);
+        hardware.leftDrive().setDirection(DcMotor.Direction.REVERSE);
+        hardware.rightDrive().setDirection(DcMotor.Direction.FORWARD);
 
         /*
          * Here we reset the encoders on our drive motors before we start moving.
          */
-        leftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        rightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        hardware.leftDrive().setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        hardware.rightDrive().setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         /*
          * Setting zeroPowerBehavior to BRAKE enables a "brake mode." This causes the motor to
          * slow down much faster when it is coasting. This creates a much more controllable
          * drivetrain, as the robot stops much quicker.
          */
-        leftDrive.setZeroPowerBehavior(BRAKE);
-        rightDrive.setZeroPowerBehavior(BRAKE);
-        launcher.setZeroPowerBehavior(BRAKE);
+        hardware.leftDrive().setZeroPowerBehavior(BRAKE);
+        hardware.rightDrive().setZeroPowerBehavior(BRAKE);
+        hardware.launcher().setZeroPowerBehavior(BRAKE);
 
         /*
          * Here we set our launcher to the RUN_USING_ENCODER runmode.
@@ -229,19 +215,19 @@ public class ZeroDividedByZeroAuto extends OpMode
          * right to a number much higher than your set point, make sure that your encoders are plugged
          * into the port right beside the motor itself.
          */
-        launcher.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        hardware.launcher().setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         /*
          * Here we set the aforementioned PID coefficients. You shouldn't have to do this for any
          * other motors on this robot.
          */
-        launcher.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER,new PIDFCoefficients(300,0,0,10));
+        hardware.launcher().setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER,new PIDFCoefficients(300,0,0,10));
 
         /*
          * Much like our drivetrain motors, we set the left feeder servo to reverse so that they
          * both work to feed the ball into the robot.
          */
-        leftFeeder.setDirection(DcMotorSimple.Direction.REVERSE);
+        hardware.leftFeeder().setDirection(DcMotorSimple.Direction.REVERSE);
 
 
         // Tell the driver that initialization is complete.
@@ -257,8 +243,8 @@ public class ZeroDividedByZeroAuto extends OpMode
          * We also set the servo power to 0 here to make sure that the servo controller is booted
          * up and ready to go.
          */
-        rightFeeder.setPower(0);
-        leftFeeder.setPower(0);
+        hardware.rightFeeder().setPower(0);
+        hardware.leftFeeder().setPower(0);
 
 
         /*
@@ -327,9 +313,9 @@ public class ZeroDividedByZeroAuto extends OpMode
                     if(shotsToFire > 0) {
                         autonomousState = AutonomousState.LAUNCH;
                     } else {
-                        leftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                        rightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                        launcher.setVelocity(0);
+                        hardware.leftDrive().setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                        hardware.rightDrive().setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                        hardware.launcher().setVelocity(0);
                         autonomousState = AutonomousState.DRIVING_AWAY_FROM_GOAL;
                     }
                 }
@@ -342,8 +328,8 @@ public class ZeroDividedByZeroAuto extends OpMode
                  * Once the function returns "true" we reset the encoders again and move on.
                  */
                 if(drive(DRIVE_SPEED, -4, DistanceUnit.INCH, 1)){
-                    leftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                    rightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                    hardware.leftDrive().setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                    hardware.rightDrive().setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                     autonomousState = AutonomousState.ROTATING;
                 }
                 break;
@@ -356,8 +342,8 @@ public class ZeroDividedByZeroAuto extends OpMode
                 }
 
                 if(rotate(ROTATE_SPEED, robotRotationAngle, AngleUnit.DEGREES,1)){
-                    leftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                    rightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                    hardware.leftDrive().setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                    hardware.rightDrive().setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                     autonomousState = AutonomousState.DRIVING_OFF_LINE;
                 }
                 break;
@@ -380,9 +366,9 @@ public class ZeroDividedByZeroAuto extends OpMode
         telemetry.addData("AutoState", autonomousState);
         telemetry.addData("LauncherState", launchState);
         telemetry.addData("Motor Current Positions", "left (%d), right (%d)",
-                leftDrive.getCurrentPosition(), rightDrive.getCurrentPosition());
+                hardware.leftDrive().getCurrentPosition(), hardware.rightDrive().getCurrentPosition());
         telemetry.addData("Motor Target Positions", "left (%d), right (%d)",
-                leftDrive.getTargetPosition(), rightDrive.getTargetPosition());
+                hardware.leftDrive().getTargetPosition(), hardware.rightDrive().getTargetPosition());
         telemetry.update();
     }
 
@@ -410,18 +396,18 @@ public class ZeroDividedByZeroAuto extends OpMode
                 }
                 break;
             case PREPARE:
-                launcher.setVelocity(LAUNCHER_TARGET_VELOCITY);
-                if (launcher.getVelocity() > LAUNCHER_MIN_VELOCITY){
+                hardware.launcher().setVelocity(LAUNCHER_TARGET_VELOCITY);
+                if (hardware.launcher().getVelocity() > LAUNCHER_MIN_VELOCITY){
                     launchState = LaunchState.LAUNCH;
-                    leftFeeder.setPower(1);
-                    rightFeeder.setPower(1);
+                    hardware.leftFeeder().setPower(1);
+                    hardware.rightFeeder().setPower(1);
                     feederTimer.reset();
                 }
                 break;
             case LAUNCH:
                 if (feederTimer.seconds() > FEED_TIME) {
-                    leftFeeder.setPower(0);
-                    rightFeeder.setPower(0);
+                    hardware.leftFeeder().setPower(0);
+                    hardware.rightFeeder().setPower(0);
 
                     if(shotTimer.seconds() > TIME_BETWEEN_SHOTS){
                         launchState = LaunchState.IDLE;
@@ -453,14 +439,14 @@ public class ZeroDividedByZeroAuto extends OpMode
          */
         double targetPosition = (distanceUnit.toMm(distance) * TICKS_PER_MM);
 
-        leftDrive.setTargetPosition((int) targetPosition);
-        rightDrive.setTargetPosition((int) targetPosition);
+        hardware.leftDrive().setTargetPosition((int) targetPosition);
+        hardware.rightDrive().setTargetPosition((int) targetPosition);
 
-        leftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        rightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        hardware.leftDrive().setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        hardware.rightDrive().setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-        leftDrive.setPower(speed);
-        rightDrive.setPower(speed);
+        hardware.leftDrive().setPower(speed);
+        hardware.rightDrive().setPower(speed);
 
         /*
          * Here we check if we are within tolerance of our target position or not. We calculate the
@@ -469,7 +455,7 @@ public class ZeroDividedByZeroAuto extends OpMode
          * the driveTimer. Only after we reach the target can the timer count higher than our
          * holdSeconds variable.
          */
-        if(Math.abs(targetPosition - leftDrive.getCurrentPosition()) > (TOLERANCE_MM * TICKS_PER_MM)){
+        if(Math.abs(targetPosition - hardware.leftDrive().getCurrentPosition()) > (TOLERANCE_MM * TICKS_PER_MM)){
             driveTimer.reset();
         }
 
@@ -505,16 +491,16 @@ public class ZeroDividedByZeroAuto extends OpMode
         double leftTargetPosition = -(targetMm*TICKS_PER_MM);
         double rightTargetPosition = targetMm*TICKS_PER_MM;
 
-        leftDrive.setTargetPosition((int) leftTargetPosition);
-        rightDrive.setTargetPosition((int) rightTargetPosition);
+        hardware.leftDrive().setTargetPosition((int) leftTargetPosition);
+        hardware.rightDrive().setTargetPosition((int) rightTargetPosition);
 
-        leftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        rightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        hardware.leftDrive().setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        hardware.rightDrive().setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-        leftDrive.setPower(speed);
-        rightDrive.setPower(speed);
+        hardware.leftDrive().setPower(speed);
+        hardware.rightDrive().setPower(speed);
 
-        if((Math.abs(leftTargetPosition - leftDrive.getCurrentPosition())) > (TOLERANCE_MM * TICKS_PER_MM)){
+        if((Math.abs(leftTargetPosition - hardware.leftDrive().getCurrentPosition())) > (TOLERANCE_MM * TICKS_PER_MM)){
             driveTimer.reset();
         }
 

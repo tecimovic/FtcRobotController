@@ -58,9 +58,9 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * we will also need to adjust the "PIDF" coefficients with some that are a better fit for our application.
  */
 
-@TeleOp(name = "StarterBotTeleop", group = "StarterBot")
+@TeleOp(name = "0Div0-TeleOp", group = "ZeroDividedByZero")
 //@Disabled
-public class ZeroDividedByZeroTeleop extends OpMode {
+public class ZDZTeleop extends OpMode {
     final double FEED_TIME_SECONDS = 0.20; //The feeder servos run this long when a shot is requested.
     final double STOP_SPEED = 0.0; //We send this power to the servos when we want them to stop.
     final double FULL_SPEED = 1.0;
@@ -74,12 +74,7 @@ public class ZeroDividedByZeroTeleop extends OpMode {
     final double LAUNCHER_TARGET_VELOCITY = 1125;
     final double LAUNCHER_MIN_VELOCITY = 1075;
 
-    // Declare OpMode members.
-    private DcMotor leftDrive = null;
-    private DcMotor rightDrive = null;
-    private DcMotorEx launcher = null;
-    private CRServo leftFeeder = null;
-    private CRServo rightFeeder = null;
+    private ZDZHardware hardware;
 
     ElapsedTime feederTimer = new ElapsedTime();
 
@@ -119,16 +114,7 @@ public class ZeroDividedByZeroTeleop extends OpMode {
     public void init() {
         launchState = LaunchState.IDLE;
 
-        /*
-         * Initialize the hardware variables. Note that the strings used here as parameters
-         * to 'get' must correspond to the names assigned during the robot configuration
-         * step.
-         */
-        leftDrive = hardwareMap.get(DcMotor.class, "left_drive");
-        rightDrive = hardwareMap.get(DcMotor.class, "right_drive");
-        launcher = hardwareMap.get(DcMotorEx.class, "launcher");
-        leftFeeder = hardwareMap.get(CRServo.class, "left_feeder");
-        rightFeeder = hardwareMap.get(CRServo.class, "right_feeder");
+        hardware = new ZDZHardware(hardwareMap);
 
         /*
          * To drive forward, most robots need the motor on one side to be reversed,
@@ -137,8 +123,8 @@ public class ZeroDividedByZeroTeleop extends OpMode {
          * Note: The settings here assume direct drive on left and right wheels. Gear
          * Reduction or 90 Deg drives may require direction flips
          */
-        leftDrive.setDirection(DcMotor.Direction.REVERSE);
-        rightDrive.setDirection(DcMotor.Direction.FORWARD);
+        hardware.leftDrive().setDirection(DcMotor.Direction.REVERSE);
+        hardware.rightDrive().setDirection(DcMotor.Direction.FORWARD);
 
         /*
          * Here we set our launcher to the RUN_USING_ENCODER runmode.
@@ -147,30 +133,30 @@ public class ZeroDividedByZeroTeleop extends OpMode {
          * into the port right beside the motor itself. And that the motors polarity is consistent
          * through any wiring.
          */
-        launcher.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        hardware.launcher().setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         /*
          * Setting zeroPowerBehavior to BRAKE enables a "brake mode". This causes the motor to
          * slow down much faster when it is coasting. This creates a much more controllable
          * drivetrain. As the robot stops much quicker.
          */
-        leftDrive.setZeroPowerBehavior(BRAKE);
-        rightDrive.setZeroPowerBehavior(BRAKE);
-        launcher.setZeroPowerBehavior(BRAKE);
+        hardware.leftDrive().setZeroPowerBehavior(BRAKE);
+        hardware.rightDrive().setZeroPowerBehavior(BRAKE);
+        hardware.launcher().setZeroPowerBehavior(BRAKE);
 
         /*
          * set Feeders to an initial value to initialize the servo controller
          */
-        leftFeeder.setPower(STOP_SPEED);
-        rightFeeder.setPower(STOP_SPEED);
+        hardware.leftFeeder().setPower(STOP_SPEED);
+        hardware.rightFeeder().setPower(STOP_SPEED);
 
-        launcher.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(300, 0, 0, 10));
+        hardware.launcher().setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(300, 0, 0, 10));
 
         /*
          * Much like our drivetrain motors, we set the left feeder servo to reverse so that they
          * both work to feed the ball into the robot.
          */
-        leftFeeder.setDirection(DcMotorSimple.Direction.REVERSE);
+        hardware.leftFeeder().setDirection(DcMotorSimple.Direction.REVERSE);
 
         /*
          * Tell the driver that initialization is complete.
@@ -213,21 +199,21 @@ public class ZeroDividedByZeroTeleop extends OpMode {
          * queuing a shot.
          */
         if (gamepad1.dpad_up) {
-            launcher.setVelocity(LAUNCHER_TARGET_VELOCITY);
-            leftFeeder.setPower(1.0);
-            rightFeeder.setPower(1.0);
+            hardware.launcher().setVelocity(LAUNCHER_TARGET_VELOCITY);
+            //leftFeeder.setPower(1.0);
+            //rightFeeder.setPower(1.0);
         } else if (gamepad1.dpad_down) { // stop flywheel
-            launcher.setVelocity(STOP_SPEED);
-            leftFeeder.setPower(0.0);
-            rightFeeder.setPower(0.0);
+            hardware.launcher().setVelocity(STOP_SPEED);
+            //leftFeeder.setPower(0.0);
+            //rightFeeder.setPower(0.0);
         }
         
         if (gamepad1.dpad_left){
-            leftFeeder.setPower(-1.0);
-            rightFeeder.setPower(-1.0);
+            hardware.leftFeeder().setPower(-1.0);
+            hardware.rightFeeder().setPower(-1.0);
         }else if(gamepad1.dpad_right) {
-            leftFeeder.setPower(0.0);
-            rightFeeder.setPower(0.0);
+            hardware.leftFeeder().setPower(0.0);
+            hardware.rightFeeder().setPower(0.0);
         }
 
         /*
@@ -240,7 +226,7 @@ public class ZeroDividedByZeroTeleop extends OpMode {
          */
         telemetry.addData("State", launchState);
         telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
-        telemetry.addData("motorSpeed", launcher.getVelocity());
+        telemetry.addData("motorSpeed", hardware.launcher().getVelocity());
 
     }
 
@@ -258,8 +244,8 @@ public class ZeroDividedByZeroTeleop extends OpMode {
         /*
          * Send calculated power to wheels
          */
-        leftDrive.setPower(leftPower);
-        rightDrive.setPower(rightPower);
+        hardware.leftDrive().setPower(leftPower);
+        hardware.rightDrive().setPower(rightPower);
     }
 
     void launch(boolean shotRequested) {
@@ -270,22 +256,22 @@ public class ZeroDividedByZeroTeleop extends OpMode {
                 }
                 break;
             case SPIN_UP:
-                launcher.setVelocity(LAUNCHER_TARGET_VELOCITY);
-                if (launcher.getVelocity() > LAUNCHER_MIN_VELOCITY) {
+                hardware.launcher().setVelocity(LAUNCHER_TARGET_VELOCITY);
+                if (hardware.launcher().getVelocity() > LAUNCHER_MIN_VELOCITY) {
                     launchState = LaunchState.LAUNCH;
                 }
                 break;
             case LAUNCH:
-                leftFeeder.setPower(FULL_SPEED);
-                rightFeeder.setPower(FULL_SPEED);
+                hardware.leftFeeder().setPower(FULL_SPEED);
+                hardware.rightFeeder().setPower(FULL_SPEED);
                 feederTimer.reset();
                 launchState = LaunchState.LAUNCHING;
                 break;
             case LAUNCHING:
                 if (feederTimer.seconds() > FEED_TIME_SECONDS) {
                     launchState = LaunchState.IDLE;
-                    leftFeeder.setPower(STOP_SPEED);
-                    rightFeeder.setPower(STOP_SPEED);
+                    hardware.leftFeeder().setPower(STOP_SPEED);
+                    hardware.rightFeeder().setPower(STOP_SPEED);
                 }
                 break;
         }
