@@ -36,9 +36,7 @@ import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.BRAKE;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -155,14 +153,6 @@ public class ZDZAuto extends OpMode
     private AutonomousState autonomousState;
 
     /*
-     * Here we create an enum not to create a state machine, but to capture which alliance we are on.
-     */
-    private enum Alliance {
-        RED,
-        BLUE;
-    }
-
-    /*
      * When we create the instance of our enum we can also assign a default state.
      */
     private Alliance alliance = Alliance.RED;
@@ -239,6 +229,9 @@ public class ZDZAuto extends OpMode
      */
     @Override
     public void init_loop() {
+        // Hardware has its own init loop.
+        hardware.init_loop();
+
         /*
          * We also set the servo power to 0 here to make sure that the servo controller is booted
          * up and ready to go.

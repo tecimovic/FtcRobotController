@@ -169,6 +169,7 @@ public class ZDZTeleop extends OpMode {
      */
     @Override
     public void init_loop() {
+        hardware.init_loop();
     }
 
     /*
