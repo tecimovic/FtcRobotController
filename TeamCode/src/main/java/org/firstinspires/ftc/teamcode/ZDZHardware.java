@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 
+
 public class ZDZHardware {
     // Declare OpMode members.
     private final DcMotor leftDrive;
@@ -46,6 +47,22 @@ public class ZDZHardware {
     public DcMotor rightDrive() { return rightDrive; }
     public DcMotorEx launcher() { return launcher; }
 
+    public Servo getLight() {
+        return light;
+    }
+ public void lightwhee() {
+        for(double x=0.280;x >=0.723;x+=0.01 ){
+            light.setPosition(x);
+            halfSecondTick(1);
+
+        }
+     for(double x=0.723;x <=0.280;x-=0.01 ){
+         light.setPosition(x);
+         halfSecondTick(1);
+
+     }
+
+ }
     public void lightWhite() { light.setPosition(1.0);}
     public void lightGreen() { light.setPosition(0.5); }
     public void lightOff() { light.setPosition(0.0); }

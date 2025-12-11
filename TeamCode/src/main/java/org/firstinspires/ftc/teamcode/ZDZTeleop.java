@@ -58,21 +58,26 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * we will also need to adjust the "PIDF" coefficients with some that are a better fit for our application.
  */
 
+
 @TeleOp(name = "0Div0-TeleOp", group = "ZeroDividedByZero")
 //@Disabled
 public class ZDZTeleop extends OpMode {
+
+
     final double FEED_TIME_SECONDS = 0.20; //The feeder servos run this long when a shot is requested.
     final double STOP_SPEED = 0.0; //We send this power to the servos when we want them to stop.
     final double FULL_SPEED = 1.0;
-
+    int launcherspeed = 0;
     /*
      * When we control our launcher motor, we are using encoders. These allow the control system
      * to read the current speed of the motor and apply more or less power to keep it at a constant
      * velocity. Here we are setting the target, and minimum velocity that the launcher should run
      * at. The minimum velocity is a threshold for determining when to fire.
      */
-    final double LAUNCHER_TARGET_VELOCITY = 1125;
-    final double LAUNCHER_MIN_VELOCITY = 1075;
+    final double LAUNCHER_TARGET_VELOCITY = 800;
+    //originally 1125
+    final double LAUNCHER_MIN_VELOCITY = 700;
+    //originally 1075
 
     private ZDZHardware hardware;
 
@@ -150,6 +155,9 @@ public class ZDZTeleop extends OpMode {
         hardware.leftFeeder().setPower(STOP_SPEED);
         hardware.rightFeeder().setPower(STOP_SPEED);
 
+
+
+
         hardware.launcher().setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(300, 0, 0, 10));
 
         /*
@@ -177,6 +185,8 @@ public class ZDZTeleop extends OpMode {
      */
     @Override
     public void start() {
+
+        hardware.lightOff();
     }
 
     /*
@@ -198,20 +208,50 @@ public class ZDZTeleop extends OpMode {
         /*
          * Here we give the user control of the speed of the launcher motor without automatically
          * queuing a shot.
+         *
+         *
          */
+
+
+        if(gamepad1.circle){
+            launcherspeed= launcherspeed+50;
+            hardware.launcher().setVelocity(launcherspeed);
+        }
+
+        if(gamepad1.cross){
+            launcherspeed=launcherspeed-50;
+            hardware.launcher().setVelocity(launcherspeed);
+        }
+
+
+        if (hardware.launcher().getVelocity() >= LAUNCHER_MIN_VELOCITY){
+            hardware.lightGreen();
+        }
         if (gamepad1.dpad_up) {
             hardware.launcher().setVelocity(LAUNCHER_TARGET_VELOCITY);
+            hardware.lightBlue();
             //leftFeeder.setPower(1.0);
             //rightFeeder.setPower(1.0);
         } else if (gamepad1.dpad_down) { // stop flywheel
             hardware.launcher().setVelocity(STOP_SPEED);
+            hardware.lightOff();
             //leftFeeder.setPower(0.0);
             //rightFeeder.setPower(0.0);
         }
+
+        if (gamepad1.leftBumperWasPressed()) {
+            for(int x=0;x<=10;x++){
+                hardware.lightwhee();
+            }
+            hardware.lightOff();
+
+        }
         
         if (gamepad1.dpad_left){
-            hardware.leftFeeder().setPower(-1.0);
-            hardware.rightFeeder().setPower(-1.0);
+
+                hardware.leftFeeder().setPower(-1.0);
+                hardware.rightFeeder().setPower(-1.0);
+
         }else if(gamepad1.dpad_right) {
             hardware.leftFeeder().setPower(0.0);
             hardware.rightFeeder().setPower(0.0);
