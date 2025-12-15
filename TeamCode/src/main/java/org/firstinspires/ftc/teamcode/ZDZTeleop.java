@@ -212,19 +212,13 @@ public class ZDZTeleop extends OpMode {
          */
         arcadeDrive(-gamepad1.left_stick_y, gamepad1.right_stick_x);
 
-        /*
-         * Here we give the user control of the speed of the launcher motor without automatically
-         * queuing a shot.
-         *
-         *
-         */
+        if ( speedAdjustTimer.milliseconds() > 250 ) {
+            hardware.lightOff();
+        }
 
 
         if(gamepad1.circleWasPressed()){
 
-            if ( speedAdjustTimer.milliseconds() > 250 ) {
-                hardware.lightOff();
-            }
 
             if ( speedAdjustTimer.milliseconds() > 500 ) {
                 launcherspeed= launcherspeed+10;
