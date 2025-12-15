@@ -67,13 +67,16 @@ public class ZDZTeleop extends OpMode {
     final double FEED_TIME_SECONDS = 0.20; //The feeder servos run this long when a shot is requested.
     final double STOP_SPEED = 0.0; //We send this power to the servos when we want them to stop.
     final double FULL_SPEED = 1.0;
-    int launcherspeed = 0;
+    private double launcherspeed = 0;
     /*
      * When we control our launcher motor, we are using encoders. These allow the control system
      * to read the current speed of the motor and apply more or less power to keep it at a constant
      * velocity. Here we are setting the target, and minimum velocity that the launcher should run
      * at. The minimum velocity is a threshold for determining when to fire.
      */
+
+    final double MAX_LAUNCHER_VELOCITY = 1125;
+
     final double LAUNCHER_TARGET_VELOCITY = 800;
     //originally 1125
     final double LAUNCHER_MIN_VELOCITY = 700;
@@ -81,7 +84,9 @@ public class ZDZTeleop extends OpMode {
 
     private ZDZHardware hardware;
 
-    ElapsedTime feederTimer = new ElapsedTime();
+    private ElapsedTime feederTimer = new ElapsedTime();
+
+    private ElapsedTime speedAdjustTimer = new ElapsedTime();
 
     /*
      * TECH TIP: State Machines
@@ -187,6 +192,8 @@ public class ZDZTeleop extends OpMode {
     public void start() {
 
         hardware.lightOff();
+
+        speedAdjustTimer.reset();
     }
 
     /*
@@ -213,14 +220,37 @@ public class ZDZTeleop extends OpMode {
          */
 
 
-        if(gamepad1.circle){
-            launcherspeed= launcherspeed+50;
-            hardware.launcher().setVelocity(launcherspeed);
+        if(gamepad1.circleWasPressed()){
+
+            if ( speedAdjustTimer.milliseconds() > 250 ) {
+                hardware.lightOff();
+            }
+
+            if ( speedAdjustTimer.milliseconds() > 500 ) {
+                launcherspeed= launcherspeed+10;
+                if ( launcherspeed > MAX_LAUNCHER_VELOCITY ) {
+                    launcherspeed = MAX_LAUNCHER_VELOCITY;
+                }
+                hardware.launcher().setVelocity(launcherspeed);
+                hardware.lightGreen();
+                speedAdjustTimer.reset();
+            }
         }
 
-        if(gamepad1.cross){
-            launcherspeed=launcherspeed-50;
-            hardware.launcher().setVelocity(launcherspeed);
+        if(gamepad1.crossWasPressed()){
+            if ( speedAdjustTimer.milliseconds() > 500 ) {
+                launcherspeed=launcherspeed-10;
+                if ( launcherspeed < 0 ) {
+                    launcherspeed = STOP_SPEED;
+                }
+                hardware.launcher().setVelocity(launcherspeed);
+                if ( launcherspeed == STOP_SPEED ) {
+                    hardware.lightBlue();
+                } else {
+                    hardware.lightRed();
+                }
+                speedAdjustTimer.reset();
+            }
         }
 
 
