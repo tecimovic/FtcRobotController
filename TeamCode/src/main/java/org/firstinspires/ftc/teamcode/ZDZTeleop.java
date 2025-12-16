@@ -194,6 +194,7 @@ public class ZDZTeleop extends OpMode {
         hardware.lightOff();
 
         speedAdjustTimer.reset();
+        telemetry.addData("Status", "Running.");
     }
 
     /*
@@ -218,26 +219,28 @@ public class ZDZTeleop extends OpMode {
 
 
         if(gamepad1.circleWasPressed()){
-
-
+            // We allow the change every 500 ms
             if ( speedAdjustTimer.milliseconds() > 500 ) {
                 launcherspeed= launcherspeed+10;
                 if ( launcherspeed > MAX_LAUNCHER_VELOCITY ) {
                     launcherspeed = MAX_LAUNCHER_VELOCITY;
                 }
                 hardware.launcher().setVelocity(launcherspeed);
+                // We flash green light when speed goes up by 10.
                 hardware.lightGreen();
                 speedAdjustTimer.reset();
             }
         }
 
         if(gamepad1.crossWasPressed()){
+            // We allow the change every 500 ms
             if ( speedAdjustTimer.milliseconds() > 500 ) {
                 launcherspeed=launcherspeed-10;
                 if ( launcherspeed < 0 ) {
                     launcherspeed = STOP_SPEED;
                 }
                 hardware.launcher().setVelocity(launcherspeed);
+                // We flash red light when we go down, and blue when we get to blue.
                 if ( launcherspeed == STOP_SPEED ) {
                     hardware.lightBlue();
                 } else {
@@ -291,8 +294,8 @@ public class ZDZTeleop extends OpMode {
          */
         telemetry.addData("State", launchState);
         telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
-        telemetry.addData("motorSpeed", hardware.launcher().getVelocity());
-
+        telemetry.addData("Actual speed", hardware.launcher().getVelocity());
+        telemetry.addData("Set launcher speed", launcherspeed);
     }
 
     /*
