@@ -64,6 +64,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 public class ZDZTeleop extends OpMode {
 
 
+    final double OPTIMAL_LAUNCHER_SPEED = 60;
+    final double OPTIMAL_DISTANCE_FROM_GOAL = 21; // inches
     final double FEED_TIME_SECONDS = 0.20; //The feeder servos run this long when a shot is requested.
     final double STOP_SPEED = 0.0; //We send this power to the servos when we want them to stop.
     final double FULL_SPEED = 1.0;
