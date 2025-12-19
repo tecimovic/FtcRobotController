@@ -5,10 +5,12 @@ import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 
 public class ZDZHardware {
@@ -20,6 +22,7 @@ public class ZDZHardware {
     private final CRServo rightFeeder;
     private final Servo light;
 
+    private final DistanceSensor frontDistance;
     private ElapsedTime timer;
     private int tickCount=0;
 
@@ -36,6 +39,8 @@ public class ZDZHardware {
         leftFeeder = hardwareMap.get(CRServo.class, "left_feeder");
         rightFeeder = hardwareMap.get(CRServo.class, "right_feeder");
         light = hardwareMap.get(Servo.class, "light");
+        frontDistance = hardwareMap.get(DistanceSensor.class, "front_distance");
+
         lightWhite();
         timer = new ElapsedTime();
         timer.reset();
@@ -46,6 +51,7 @@ public class ZDZHardware {
     public DcMotor leftDrive() { return leftDrive; }
     public DcMotor rightDrive() { return rightDrive; }
     public DcMotorEx launcher() { return launcher; }
+    public double frontDistanceInCentimeters() { return frontDistance.getDistance(DistanceUnit.CM);}
 
     public Servo getLight() {
         return light;

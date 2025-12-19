@@ -298,6 +298,7 @@ public class ZDZTeleop extends OpMode {
         telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
         telemetry.addData("Actual speed", hardware.launcher().getVelocity());
         telemetry.addData("Set launcher speed", launcherspeed);
+        telemetry.addData("Front distance (cm)", hardware.frontDistanceInCentimeters());
     }
 
     /*
