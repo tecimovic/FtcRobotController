@@ -1,12 +1,17 @@
 package org.firstinspires.ftc.teamcode;
 
+import android.graphics.Color;
+
 import com.qualcomm.hardware.ams.AMSColorSensor;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
+import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -23,6 +28,7 @@ public class ZDZHardware {
     private final Servo light;
 
     private final DistanceSensor frontDistance;
+    private final NormalizedColorSensor colorSensor;
     private ElapsedTime timer;
     private int tickCount=0;
 
@@ -40,7 +46,7 @@ public class ZDZHardware {
         rightFeeder = hardwareMap.get(CRServo.class, "right_feeder");
         light = hardwareMap.get(Servo.class, "light");
         frontDistance = hardwareMap.get(DistanceSensor.class, "front_distance");
-
+        colorSensor = hardwareMap.get(NormalizedColorSensor.class, "color_sensor");
         lightWhite();
         timer = new ElapsedTime();
         timer.reset();
@@ -51,6 +57,7 @@ public class ZDZHardware {
     public DcMotor leftDrive() { return leftDrive; }
     public DcMotor rightDrive() { return rightDrive; }
     public DcMotorEx launcher() { return launcher; }
+    public NormalizedRGBA colorSensor() { return colorSensor.getNormalizedColors(); }
     public double frontDistanceInCentimeters() { return frontDistance.getDistance(DistanceUnit.CM);}
 
     public Servo getLight() {
