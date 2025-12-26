@@ -63,7 +63,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 //@Disabled
 public class ZDZTeleop extends OpMode {
 
-
+/* 25-50 centebebeders */
     final double OPTIMAL_LAUNCHER_SPEED = 60;
     final double OPTIMAL_DISTANCE_FROM_GOAL = 21; // inches
     final double FEED_TIME_SECONDS = 0.20; //The feeder servos run this long when a shot is requested.
@@ -76,7 +76,6 @@ public class ZDZTeleop extends OpMode {
      * velocity. Here we are setting the target, and minimum velocity that the launcher should run
      * at. The minimum velocity is a threshold for determining when to fire.
      */
-
     final double MAX_LAUNCHER_VELOCITY = 1125;
 
     final double LAUNCHER_TARGET_VELOCITY = 800;
@@ -253,7 +252,10 @@ public class ZDZTeleop extends OpMode {
                 speedAdjustTimer.reset();
             }
         }
-
+        if (hardware.frontDistanceInCentimeters() > 20 & hardware.frontDistanceInCentimeters() < 55) {
+            hardware.ledsGreen();}
+        else{
+            hardware.ledsRed();}
 
         if (hardware.launcher().getVelocity() >= LAUNCHER_MIN_VELOCITY){
             hardware.lightGreen();
@@ -304,7 +306,6 @@ public class ZDZTeleop extends OpMode {
         telemetry.addData("Colors",  Math.round(hardware.colorSensor().red*10000) + "/" +Math.round(hardware.colorSensor().green*10000) + "/" + Math.round(hardware.colorSensor().blue*10000));
         telemetry.addLine("Ilovejamsiebear");
     }
-
     /*
      * Code to run ONCE after the driver hits STOP
      */
