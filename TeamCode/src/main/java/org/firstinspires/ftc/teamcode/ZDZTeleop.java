@@ -162,6 +162,7 @@ public class ZDZTeleop extends OpMode {
         hardware.leftFeeder().setPower(STOP_SPEED);
         hardware.rightFeeder().setPower(STOP_SPEED);
 
+        this.hardware.ledsRed();
 
 
 
@@ -194,6 +195,7 @@ public class ZDZTeleop extends OpMode {
     public void start() {
 
         hardware.lightOff();
+        this.hardware.ledsGreen();
 
         speedAdjustTimer.reset();
         telemetry.addData("Status", "Running.");
@@ -308,6 +310,7 @@ public class ZDZTeleop extends OpMode {
      */
     @Override
     public void stop() {
+        this.hardware.ledsOff();
     }
 
     void arcadeDrive(double forward, double rotate) {
