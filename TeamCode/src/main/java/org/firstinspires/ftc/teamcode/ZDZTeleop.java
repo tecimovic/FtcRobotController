@@ -299,7 +299,7 @@ public class ZDZTeleop extends OpMode {
         telemetry.addData("Actual speed", hardware.launcher().getVelocity());
         telemetry.addData("Set launcher speed", launcherspeed);
         telemetry.addData("Front distance (cm)", hardware.frontDistanceInCentimeters());
-        telemetry.addData("Colors",  hardware.colorSensor().red + "/" +hardware.colorSensor().green + "/" + hardware.colorSensor().blue);
+        telemetry.addData("Colors",  Math.round(hardware.colorSensor().red*10000) + "/" +Math.round(hardware.colorSensor().green*10000) + "/" + Math.round(hardware.colorSensor().blue*10000));
         telemetry.addLine("Ilovejamsiebear");
     }
 
