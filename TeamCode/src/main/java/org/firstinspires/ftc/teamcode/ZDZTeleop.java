@@ -251,6 +251,11 @@ public class ZDZTeleop extends OpMode {
                 }
                 speedAdjustTimer.reset();
             }
+
+            if(gamepad1.square){
+                launcherspeed=60;
+                hardware.launcher().setVelocity(launcherspeed);
+            }
         }
         if (hardware.frontDistanceInCentimeters() > 20 & hardware.frontDistanceInCentimeters() < 55) {
             hardware.ledsGreen();}
