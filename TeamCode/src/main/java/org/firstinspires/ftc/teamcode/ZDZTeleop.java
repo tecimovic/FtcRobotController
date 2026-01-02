@@ -70,6 +70,9 @@ public class ZDZTeleop extends OpMode {
     final double STOP_SPEED = 0.0; //We send this power to the servos when we want them to stop.
     final double FULL_SPEED = 1.0;
     private double launcherspeed = 0;
+
+    private boolean timerwasused = false;
+
     /*
      * When we control our launcher motor, we are using encoders. These allow the control system
      * to read the current speed of the motor and apply more or less power to keep it at a constant
@@ -88,6 +91,8 @@ public class ZDZTeleop extends OpMode {
     private ElapsedTime feederTimer = new ElapsedTime();
 
     private ElapsedTime speedAdjustTimer = new ElapsedTime();
+
+    private ElapsedTime timer = new ElapsedTime();
 
     /*
      * TECH TIP: State Machines
@@ -218,6 +223,20 @@ public class ZDZTeleop extends OpMode {
 
         if ( speedAdjustTimer.milliseconds() > 250 ) {
             hardware.lightOff();
+        }
+
+        if(gamepad1.triangle){
+            hardware.leftFeeder().setPower(-1.0);
+            hardware.rightFeeder().setPower(-1.0);
+             timer.reset();
+             timerwasused=true;
+        }
+        if(timer.seconds()>=0.2){
+            if(timerwasused=true){
+                hardware.leftFeeder().setPower(0.0);
+                hardware.rightFeeder().setPower(0.0);
+                timerwasused=false;
+            }
         }
 
 
