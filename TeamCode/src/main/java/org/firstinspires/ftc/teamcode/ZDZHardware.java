@@ -117,6 +117,15 @@ public class ZDZHardware {
         this.ledRightGreen.on();
         this.ledLeftGreen.on();
     }
+
+    public void stopAll() {
+        leftDrive.setPower(0.0);
+        leftFeeder.setPower(0.0);
+        rightDrive.setPower(0.0);
+        rightFeeder.setPower(0.0);
+        launcher.setPower(0.0);
+    }
+
     public void init_loop() {
         if (timer.milliseconds() > 500 ) {
             timer.reset();

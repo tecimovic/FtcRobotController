@@ -142,12 +142,9 @@ public class ZDZAuto extends OpMode
      * Here is our auto state machine enum. This captures each action we'd like to do in auto.
      */
     private enum AutonomousState {
-        LAUNCH,
-        WAIT_FOR_LAUNCH,
-        DRIVING_AWAY_FROM_GOAL,
-        ROTATING,
-        DRIVING_OFF_LINE,
-        COMPLETE;
+        INITIAL_DRIVE_FORWARD,
+        INITIAL_DRIVE_BACKWARD,
+        FULL_STOP;
     }
 
     private AutonomousState autonomousState;
@@ -167,7 +164,7 @@ public class ZDZAuto extends OpMode
          * Later in our code, we will progress through the state machine by moving to other enum members.
          * We do the same for our launcher state machine, setting it to IDLE before we use it later.
          */
-        autonomousState = AutonomousState.LAUNCH;
+        autonomousState = AutonomousState.INITIAL_DRIVE_FORWARD;
         launchState = LaunchState.IDLE;
 
 
@@ -259,6 +256,7 @@ public class ZDZAuto extends OpMode
      */
     @Override
     public void start() {
+        driveTimer.reset();
     }
 
     /*
@@ -276,75 +274,24 @@ public class ZDZAuto extends OpMode
          * we know our enum isn't reflecting a different state.
          */
         switch (autonomousState){
-            /*
-             * Since the first state of our auto is LAUNCH, this is the first "case" we encounter.
-             * This case is very simple. We call our .launch() function with "true" in the parameter.
-             * This "true" value informs our launch function that we'd like to start the process of
-             * firing a shot. We will call this function with a "false" in the next case. This
-             * "false" condition means that we are continuing to call the function every loop,
-             * allowing it to cycle through and continue the process of launching the first ball.
-             */
-            case LAUNCH:
-                launch(true);
-                autonomousState = AutonomousState.WAIT_FOR_LAUNCH;
-                break;
-
-            case WAIT_FOR_LAUNCH:
-                /*
-                 * A technique we leverage frequently in this code are functions which return a
-                 * boolean. We are using this function in two ways. This function actually moves the
-                 * motors and servos in a way that launches the ball, but it also "talks back" to
-                 * our main loop by returning either "true" or "false". We've written it so that
-                 * after the shot we requested has been fired, the function will return "true" for
-                 * one cycle. Once the launch function returns "true", we proceed in the code, removing
-                 * one from the shotsToFire variable. If shots remain, we move back to the LAUNCH
-                 * state on our state machine. Otherwise, we reset the encoders on our drive motors
-                 * and move onto the next state.
-                 */
-                if(launch(false)) {
-                    shotsToFire -= 1;
-                    if(shotsToFire > 0) {
-                        autonomousState = AutonomousState.LAUNCH;
-                    } else {
-                        hardware.leftDrive().setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                        hardware.rightDrive().setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                        hardware.launcher().setVelocity(0);
-                        autonomousState = AutonomousState.DRIVING_AWAY_FROM_GOAL;
-                    }
+            case INITIAL_DRIVE_FORWARD:
+                simpleDrive(0.2);
+                if ( driveTimer.milliseconds() > 2000 ) { // Just drive for 2 seconds for now.
+                    reverseDirection();
+                    autonomousState = AutonomousState.INITIAL_DRIVE_BACKWARD;
+                    driveTimer.reset();
                 }
                 break;
 
-            case DRIVING_AWAY_FROM_GOAL:
-                /*
-                 * This is another function that returns a boolean. This time we return "true" if
-                 * the robot has been within a tolerance of the target position for "holdSeconds."
-                 * Once the function returns "true" we reset the encoders again and move on.
-                 */
-                if(drive(DRIVE_SPEED, -4, DistanceUnit.INCH, 1)){
-                    hardware.leftDrive().setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                    hardware.rightDrive().setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                    autonomousState = AutonomousState.ROTATING;
+            case INITIAL_DRIVE_BACKWARD:
+                simpleDrive(0.2);
+                if ( driveTimer.milliseconds() > 2000 ) { // Just drive for 2 seconds for now.
+                    autonomousState = AutonomousState.FULL_STOP;
                 }
                 break;
 
-            case ROTATING:
-                if(alliance == Alliance.RED){
-                    robotRotationAngle = 45;
-                } else if (alliance == Alliance.BLUE){
-                    robotRotationAngle = -45;
-                }
-
-                if(rotate(ROTATE_SPEED, robotRotationAngle, AngleUnit.DEGREES,1)){
-                    hardware.leftDrive().setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                    hardware.rightDrive().setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                    autonomousState = AutonomousState.DRIVING_OFF_LINE;
-                }
-                break;
-
-            case DRIVING_OFF_LINE:
-                if(drive(DRIVE_SPEED, -26, DistanceUnit.INCH, 1)){
-                    autonomousState = AutonomousState.COMPLETE;
-                }
+            case FULL_STOP:
+                hardware.stopAll();
                 break;
         }
 
@@ -409,6 +356,18 @@ public class ZDZAuto extends OpMode
                 }
         }
         return false;
+    }
+
+    void reverseDirection() {
+        hardware.leftDrive().setDirection(hardware.leftDrive().getDirection().inverted());
+        hardware.rightDrive().setDirection(hardware.rightDrive().getDirection().inverted());
+    }
+
+    void simpleDrive(double speed) {
+        hardware.leftDrive().setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        hardware.rightDrive().setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        hardware.leftDrive().setPower(speed);
+        hardware.rightDrive().setPower(speed);
     }
 
     /**
