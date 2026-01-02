@@ -231,8 +231,8 @@ public class ZDZTeleop extends OpMode {
              timer.reset();
              timerwasused=true;
         }
-        if(timer.seconds()>=0.2){
-            if(timerwasused=true){
+        if(timer.seconds()>=0.1){
+            if(timerwasused){
                 hardware.leftFeeder().setPower(0.0);
                 hardware.rightFeeder().setPower(0.0);
                 timerwasused=false;
