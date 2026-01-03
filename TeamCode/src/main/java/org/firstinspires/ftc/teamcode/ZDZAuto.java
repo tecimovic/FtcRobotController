@@ -60,10 +60,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
  * main robot "loop," continuously checking for conditions that allow us to move to the next step.
  */
 
-@Autonomous(name="0Div0-Auto", group="ZeroDividedByZero")
+@Autonomous(name = "0Div0-Auto", group = "ZeroDividedByZero")
 //@Disabled
-public class ZDZAuto extends OpMode
-{
+public class ZDZAuto extends OpMode {
 
     final double FEED_TIME = 0.20; //The feeder servos run this long when a shot is requested.
 
@@ -126,9 +125,7 @@ public class ZDZAuto extends OpMode
      * functions and autonomous routines in a way that avoids loops within loops, and "waits."
      */
     private enum LaunchState {
-        IDLE,
-        PREPARE,
-        LAUNCH,
+        IDLE, PREPARE, LAUNCH,
     }
 
     /*
@@ -142,9 +139,7 @@ public class ZDZAuto extends OpMode
      * Here is our auto state machine enum. This captures each action we'd like to do in auto.
      */
     private enum AutonomousState {
-        INITIAL_DRIVE_FORWARD,
-        INITIAL_DRIVE_BACKWARD,
-        FULL_STOP;
+        INITIAL_DRIVE_FORWARD, INITIAL_DRIVE_BACKWARD, FULL_STOP;
     }
 
     private AutonomousState autonomousState;
@@ -170,53 +165,9 @@ public class ZDZAuto extends OpMode
 
         hardware = new ZDZHardware(hardwareMap);
 
-
-        /*
-         * To drive forward, most robots need the motor on one side to be reversed,
-         * because the axles point in opposite directions. Pushing the left stick forward
-         * MUST make the robot go forward. So, adjust these two lines based on your first test drive.
-         * Note: The settings here assume direct drive on left and right wheels. Gear
-         * Reduction or 90° drives may require direction flips
-         */
-        hardware.leftDrive().setDirection(DcMotor.Direction.REVERSE);
-        hardware.rightDrive().setDirection(DcMotor.Direction.FORWARD);
-
-        /*
-         * Here we reset the encoders on our drive motors before we start moving.
-         */
-        hardware.leftDrive().setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        hardware.rightDrive().setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        /*
-         * Setting zeroPowerBehavior to BRAKE enables a "brake mode." This causes the motor to
-         * slow down much faster when it is coasting. This creates a much more controllable
-         * drivetrain, as the robot stops much quicker.
-         */
-        hardware.leftDrive().setZeroPowerBehavior(BRAKE);
-        hardware.rightDrive().setZeroPowerBehavior(BRAKE);
-        hardware.launcher().setZeroPowerBehavior(BRAKE);
-
-        /*
-         * Here we set our launcher to the RUN_USING_ENCODER runmode.
-         * If you notice that you have no control over the velocity of the motor, and it just jumps
-         * right to a number much higher than your set point, make sure that your encoders are plugged
-         * into the port right beside the motor itself.
-         */
-        hardware.launcher().setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-        /*
-         * Here we set the aforementioned PID coefficients. You shouldn't have to do this for any
-         * other motors on this robot.
-         */
-        hardware.launcher().setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER,new PIDFCoefficients(300,0,0,10));
-
-        /*
-         * Much like our drivetrain motors, we set the left feeder servo to reverse so that they
-         * both work to feed the ball into the robot.
-         */
-        hardware.leftFeeder().setDirection(DcMotorSimple.Direction.REVERSE);
-
-
+        hardware.initDrive();
+        hardware.initLauncher();
+        hardware.initFeeders();
         // Tell the driver that initialization is complete.
         telemetry.addData("Status", "Initialized");
     }
@@ -233,8 +184,7 @@ public class ZDZAuto extends OpMode
          * We also set the servo power to 0 here to make sure that the servo controller is booted
          * up and ready to go.
          */
-        hardware.rightFeeder().setPower(0);
-        hardware.leftFeeder().setPower(0);
+        hardware.feederPower(0.0);
 
 
         /*
@@ -273,19 +223,19 @@ public class ZDZAuto extends OpMode
          * of the members of the enum for a match, since if we find the "break" line in one case,
          * we know our enum isn't reflecting a different state.
          */
-        switch (autonomousState){
+        switch (autonomousState) {
             case INITIAL_DRIVE_FORWARD:
-                simpleDrive(0.2);
-                if ( driveTimer.milliseconds() > 2000 ) { // Just drive for 2 seconds for now.
-                    reverseDirection();
+                hardware.simpleDrive(0.2);
+                if (driveTimer.milliseconds() > 2000) { // Just drive for 2 seconds for now.
+                    hardware.reverseDriveDirection();
                     autonomousState = AutonomousState.INITIAL_DRIVE_BACKWARD;
                     driveTimer.reset();
                 }
                 break;
 
             case INITIAL_DRIVE_BACKWARD:
-                simpleDrive(0.2);
-                if ( driveTimer.milliseconds() > 2000 ) { // Just drive for 2 seconds for now.
+                hardware.simpleDrive(0.2);
+                if (driveTimer.milliseconds() > 2000) { // Just drive for 2 seconds for now.
                     autonomousState = AutonomousState.FULL_STOP;
                 }
                 break;
@@ -295,21 +245,9 @@ public class ZDZAuto extends OpMode
                 break;
         }
 
-        /*
-         * Here is our telemetry that keeps us informed of what is going on in the robot. Since this
-         * part of the code exists outside of our switch statement, it will run once every loop.
-         * No matter what state our robot is in. This is the huge advantage of using state machines.
-         * We can have code inside of our state machine that runs only when necessary, and code
-         * after the last "case" that runs every loop. This means we can avoid a lot of
-         * "copy-and-paste" that non-state machine autonomous routines fall into.
-         */
         telemetry.addData("AutoState", autonomousState);
         telemetry.addData("LauncherState", launchState);
-        telemetry.addData("Motor Current Positions", "left (%d), right (%d)",
-                hardware.leftDrive().getCurrentPosition(), hardware.rightDrive().getCurrentPosition());
-        telemetry.addData("Motor Target Positions", "left (%d), right (%d)",
-                hardware.leftDrive().getTargetPosition(), hardware.rightDrive().getTargetPosition());
-        telemetry.update();
+        hardware.showState(telemetry);
     }
 
     /*
@@ -322,12 +260,13 @@ public class ZDZAuto extends OpMode
     /**
      * Launches one ball, when a shot is requested spins up the motor and once it is above a minimum
      * velocity, runs the feeder servos for the right amount of time to feed the next ball.
+     *
      * @param shotRequested "true" if the user would like to fire a new shot, and "false" if a shot
      *                      has already been requested and we need to continue to move through the
      *                      state machine and launch the ball.
      * @return "true" for one cycle after a ball has been successfully launched, "false" otherwise.
      */
-    boolean launch(boolean shotRequested){
+    boolean launch(boolean shotRequested) {
         switch (launchState) {
             case IDLE:
                 if (shotRequested) {
@@ -336,20 +275,18 @@ public class ZDZAuto extends OpMode
                 }
                 break;
             case PREPARE:
-                hardware.launcher().setVelocity(LAUNCHER_TARGET_VELOCITY);
-                if (hardware.launcher().getVelocity() > LAUNCHER_MIN_VELOCITY){
+                hardware.setLauncherVelocity(LAUNCHER_TARGET_VELOCITY);
+                if (hardware.getLauncherVelocity() > LAUNCHER_MIN_VELOCITY) {
                     launchState = LaunchState.LAUNCH;
-                    hardware.leftFeeder().setPower(1);
-                    hardware.rightFeeder().setPower(1);
+                    hardware.feederPower(1.0);
                     feederTimer.reset();
                 }
                 break;
             case LAUNCH:
                 if (feederTimer.seconds() > FEED_TIME) {
-                    hardware.leftFeeder().setPower(0);
-                    hardware.rightFeeder().setPower(0);
+                    hardware.feederPower(0.0);
 
-                    if(shotTimer.seconds() > TIME_BETWEEN_SHOTS){
+                    if (shotTimer.seconds() > TIME_BETWEEN_SHOTS) {
                         launchState = LaunchState.IDLE;
                         return true;
                     }
@@ -358,23 +295,12 @@ public class ZDZAuto extends OpMode
         return false;
     }
 
-    void reverseDirection() {
-        hardware.leftDrive().setDirection(hardware.leftDrive().getDirection().inverted());
-        hardware.rightDrive().setDirection(hardware.rightDrive().getDirection().inverted());
-    }
-
-    void simpleDrive(double speed) {
-        hardware.leftDrive().setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        hardware.rightDrive().setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        hardware.leftDrive().setPower(speed);
-        hardware.rightDrive().setPower(speed);
-    }
 
     /**
-     * @param speed From 0-1
-     * @param distance In specified unit
+     * @param speed        From 0-1
+     * @param distance     In specified unit
      * @param distanceUnit the unit of measurement for distance
-     * @param holdSeconds the number of seconds to wait at position before returning true.
+     * @param holdSeconds  the number of seconds to wait at position before returning true.
      * @return "true" if the motors are within tolerance of the target position for more than
      * holdSeconds. "false" otherwise.
      */
@@ -391,14 +317,8 @@ public class ZDZAuto extends OpMode
          */
         double targetPosition = (distanceUnit.toMm(distance) * TICKS_PER_MM);
 
-        hardware.leftDrive().setTargetPosition((int) targetPosition);
-        hardware.rightDrive().setTargetPosition((int) targetPosition);
-
-        hardware.leftDrive().setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        hardware.rightDrive().setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-        hardware.leftDrive().setPower(speed);
-        hardware.rightDrive().setPower(speed);
+        hardware.setTargetPosition((int) targetPosition);
+        hardware.setDrivePower(speed);
 
         /*
          * Here we check if we are within tolerance of our target position or not. We calculate the
@@ -407,7 +327,7 @@ public class ZDZAuto extends OpMode
          * the driveTimer. Only after we reach the target can the timer count higher than our
          * holdSeconds variable.
          */
-        if(Math.abs(targetPosition - hardware.leftDrive().getCurrentPosition()) > (TOLERANCE_MM * TICKS_PER_MM)){
+        if (Math.abs(targetPosition - hardware.getLeftPosition()) > (TOLERANCE_MM * TICKS_PER_MM)) {
             driveTimer.reset();
         }
 
@@ -415,14 +335,14 @@ public class ZDZAuto extends OpMode
     }
 
     /**
-     * @param speed From 0-1
-     * @param angle the amount that the robot should rotate
-     * @param angleUnit the unit that angle is in
+     * @param speed       From 0-1
+     * @param angle       the amount that the robot should rotate
+     * @param angleUnit   the unit that angle is in
      * @param holdSeconds the number of seconds to wait at position before returning true.
      * @return True if the motors are within tolerance of the target position for more than
-     *         holdSeconds. False otherwise.
+     * holdSeconds. False otherwise.
      */
-    boolean rotate(double speed, double angle, AngleUnit angleUnit, double holdSeconds){
+    boolean rotate(double speed, double angle, AngleUnit angleUnit, double holdSeconds) {
         final double TOLERANCE_MM = 10;
 
         /*
@@ -434,25 +354,20 @@ public class ZDZAuto extends OpMode
          * need to travel, we just need to multiply the requested angle in radians by the radius
          * of our turning circle.
          */
-        double targetMm = angleUnit.toRadians(angle)*(TRACK_WIDTH_MM/2);
+        double targetMm = angleUnit.toRadians(angle) * (TRACK_WIDTH_MM / 2);
 
         /*
          * We need to set the left motor to the inverse of the target so that we rotate instead
          * of driving straight.
          */
-        double leftTargetPosition = -(targetMm*TICKS_PER_MM);
-        double rightTargetPosition = targetMm*TICKS_PER_MM;
+        double leftTargetPosition = -(targetMm * TICKS_PER_MM);
+        double rightTargetPosition = targetMm * TICKS_PER_MM;
 
-        hardware.leftDrive().setTargetPosition((int) leftTargetPosition);
-        hardware.rightDrive().setTargetPosition((int) rightTargetPosition);
+        hardware.setTargetPositions((int) leftTargetPosition, (int) rightTargetPosition);
 
-        hardware.leftDrive().setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        hardware.rightDrive().setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        hardware.setDrivePower(speed);
 
-        hardware.leftDrive().setPower(speed);
-        hardware.rightDrive().setPower(speed);
-
-        if((Math.abs(leftTargetPosition - hardware.leftDrive().getCurrentPosition())) > (TOLERANCE_MM * TICKS_PER_MM)){
+        if ((Math.abs(leftTargetPosition - hardware.getLeftPosition())) > (TOLERANCE_MM * TICKS_PER_MM)) {
             driveTimer.reset();
         }
 

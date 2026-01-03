@@ -63,7 +63,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 //@Disabled
 public class ZDZTeleop extends OpMode {
 
-/* 25-50 centebebeders */
+    /* 25-50 centebebeders */
     final double OPTIMAL_LAUNCHER_SPEED = 60;
     final double OPTIMAL_DISTANCE_FROM_GOAL = 21; // inches
     final double FEED_TIME_SECONDS = 0.20; //The feeder servos run this long when a shot is requested.
@@ -131,52 +131,19 @@ public class ZDZTeleop extends OpMode {
         launchState = LaunchState.IDLE;
 
         hardware = new ZDZHardware(hardwareMap);
+        hardware.initDrive();
+        hardware.initLauncher();
+        hardware.initFeeders();
 
-        /*
-         * To drive forward, most robots need the motor on one side to be reversed,
-         * because the axles point in opposite directions. Pushing the left stick forward
-         * MUST make robot go forward. So adjust these two lines based on your first test drive.
-         * Note: The settings here assume direct drive on left and right wheels. Gear
-         * Reduction or 90 Deg drives may require direction flips
-         */
-        hardware.leftDrive().setDirection(DcMotor.Direction.REVERSE);
-        hardware.rightDrive().setDirection(DcMotor.Direction.FORWARD);
-
-        /*
-         * Here we set our launcher to the RUN_USING_ENCODER runmode.
-         * If you notice that you have no control over the velocity of the motor, it just jumps
-         * right to a number much higher than your set point, make sure that your encoders are plugged
-         * into the port right beside the motor itself. And that the motors polarity is consistent
-         * through any wiring.
-         */
-        hardware.launcher().setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-        /*
-         * Setting zeroPowerBehavior to BRAKE enables a "brake mode". This causes the motor to
-         * slow down much faster when it is coasting. This creates a much more controllable
-         * drivetrain. As the robot stops much quicker.
-         */
-        hardware.leftDrive().setZeroPowerBehavior(BRAKE);
-        hardware.rightDrive().setZeroPowerBehavior(BRAKE);
-        hardware.launcher().setZeroPowerBehavior(BRAKE);
 
         /*
          * set Feeders to an initial value to initialize the servo controller
          */
-        hardware.leftFeeder().setPower(STOP_SPEED);
-        hardware.rightFeeder().setPower(STOP_SPEED);
+        hardware.feederPower(STOP_SPEED);
 
-        this.hardware.ledsRed();
-
+        hardware.ledsRed();
 
 
-        hardware.launcher().setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(300, 0, 0, 10));
-
-        /*
-         * Much like our drivetrain motors, we set the left feeder servo to reverse so that they
-         * both work to feed the ball into the robot.
-         */
-        hardware.leftFeeder().setDirection(DcMotorSimple.Direction.REVERSE);
 
         /*
          * Tell the driver that initialization is complete.
@@ -221,49 +188,47 @@ public class ZDZTeleop extends OpMode {
          */
         arcadeDrive(-gamepad1.left_stick_y, gamepad1.right_stick_x);
 
-        if ( speedAdjustTimer.milliseconds() > 250 ) {
+        if (speedAdjustTimer.milliseconds() > 250) {
             hardware.lightOff();
         }
 
-        if(gamepad1.triangle){
-            hardware.leftFeeder().setPower(-1.0);
-            hardware.rightFeeder().setPower(-1.0);
-             timer.reset();
-             timerwasused=true;
+        if (gamepad1.triangle) {
+            hardware.feederPower(-1.0);
+            timer.reset();
+            timerwasused = true;
         }
-        if(timer.seconds()>=0.1){
-            if(timerwasused){
-                hardware.leftFeeder().setPower(0.0);
-                hardware.rightFeeder().setPower(0.0);
-                timerwasused=false;
+        if (timer.seconds() >= 0.1) {
+            if (timerwasused) {
+                hardware.feederPower(0.0);
+                timerwasused = false;
             }
         }
 
 
-        if(gamepad1.circleWasPressed()){
+        if (gamepad1.circleWasPressed()) {
             // We allow the change every 500 ms
-            if ( speedAdjustTimer.milliseconds() > 500 ) {
-                launcherspeed= launcherspeed+10;
-                if ( launcherspeed > MAX_LAUNCHER_VELOCITY ) {
+            if (speedAdjustTimer.milliseconds() > 500) {
+                launcherspeed = launcherspeed + 10;
+                if (launcherspeed > MAX_LAUNCHER_VELOCITY) {
                     launcherspeed = MAX_LAUNCHER_VELOCITY;
                 }
-                hardware.launcher().setVelocity(launcherspeed);
+                hardware.setLauncherVelocity(launcherspeed);
                 // We flash green light when speed goes up by 10.
                 hardware.lightGreen();
                 speedAdjustTimer.reset();
             }
         }
 
-        if(gamepad1.crossWasPressed()){
+        if (gamepad1.crossWasPressed()) {
             // We allow the change every 500 ms
-            if ( speedAdjustTimer.milliseconds() > 500 ) {
-                launcherspeed=launcherspeed-10;
-                if ( launcherspeed < 0 ) {
+            if (speedAdjustTimer.milliseconds() > 500) {
+                launcherspeed = launcherspeed - 10;
+                if (launcherspeed < 0) {
                     launcherspeed = STOP_SPEED;
                 }
-                hardware.launcher().setVelocity(launcherspeed);
+                hardware.setLauncherVelocity(launcherspeed);
                 // We flash red light when we go down, and blue when we get to blue.
-                if ( launcherspeed == STOP_SPEED ) {
+                if (launcherspeed == STOP_SPEED) {
                     hardware.lightBlue();
                 } else {
                     hardware.lightRed();
@@ -271,47 +236,45 @@ public class ZDZTeleop extends OpMode {
                 speedAdjustTimer.reset();
             }
 
-            if(gamepad1.square){
-                launcherspeed=60;
-                hardware.launcher().setVelocity(launcherspeed);
+            if (gamepad1.square) {
+                launcherspeed = 60;
+                hardware.setLauncherVelocity(launcherspeed);
             }
         }
         if (hardware.frontDistanceInCentimeters() > 20 & hardware.frontDistanceInCentimeters() < 55) {
-            hardware.ledsGreen();}
-        else{
-            hardware.ledsRed();}
+            hardware.ledsGreen();
+        } else {
+            hardware.ledsRed();
+        }
 
-        if (hardware.launcher().getVelocity() >= LAUNCHER_MIN_VELOCITY){
+        if (hardware.getLauncherVelocity() >= LAUNCHER_MIN_VELOCITY) {
             hardware.lightGreen();
         }
         if (gamepad1.dpad_up) {
-            hardware.launcher().setVelocity(LAUNCHER_TARGET_VELOCITY);
+            hardware.setLauncherVelocity(LAUNCHER_TARGET_VELOCITY);
             hardware.lightBlue();
             //leftFeeder.setPower(1.0);
             //rightFeeder.setPower(1.0);
         } else if (gamepad1.dpad_down) { // stop flywheel
-            hardware.launcher().setVelocity(STOP_SPEED);
+            hardware.setLauncherVelocity(STOP_SPEED);
             hardware.lightOff();
             //leftFeeder.setPower(0.0);
             //rightFeeder.setPower(0.0);
         }
 
         if (gamepad1.leftBumperWasPressed()) {
-            for(int x=0;x<=10;x++){
+            for (int x = 0; x <= 10; x++) {
                 hardware.lightwhee();
             }
             hardware.lightOff();
 
         }
-        
-        if (gamepad1.dpad_left){
 
-                hardware.leftFeeder().setPower(-1.0);
-                hardware.rightFeeder().setPower(-1.0);
+        if (gamepad1.dpad_left) {
+            hardware.feederPower(-1.0);
 
-        }else if(gamepad1.dpad_right) {
-            hardware.leftFeeder().setPower(0.0);
-            hardware.rightFeeder().setPower(0.0);
+        } else if (gamepad1.dpad_right) {
+            hardware.feederPower(0.0);
         }
 
         /*
@@ -324,12 +287,10 @@ public class ZDZTeleop extends OpMode {
          */
         telemetry.addData("State", launchState);
         telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
-        telemetry.addData("Actual speed", hardware.launcher().getVelocity());
         telemetry.addData("Set launcher speed", launcherspeed);
-        telemetry.addData("Front distance (cm)", hardware.frontDistanceInCentimeters());
-        telemetry.addData("Colors",  Math.round(hardware.colorSensor().red*10000) + "/" +Math.round(hardware.colorSensor().green*10000) + "/" + Math.round(hardware.colorSensor().blue*10000));
-        telemetry.addLine("Ilovejamsiebear");
+        hardware.showState(telemetry);
     }
+
     /*
      * Code to run ONCE after the driver hits STOP
      */
@@ -345,8 +306,7 @@ public class ZDZTeleop extends OpMode {
         /*
          * Send calculated power to wheels
          */
-        hardware.leftDrive().setPower(leftPower);
-        hardware.rightDrive().setPower(rightPower);
+        hardware.drivePower(leftPower, rightPower);
     }
 
     void launch(boolean shotRequested) {
@@ -357,22 +317,20 @@ public class ZDZTeleop extends OpMode {
                 }
                 break;
             case SPIN_UP:
-                hardware.launcher().setVelocity(LAUNCHER_TARGET_VELOCITY);
-                if (hardware.launcher().getVelocity() > LAUNCHER_MIN_VELOCITY) {
+                hardware.setLauncherVelocity(LAUNCHER_TARGET_VELOCITY);
+                if (hardware.getLauncherVelocity() > LAUNCHER_MIN_VELOCITY) {
                     launchState = LaunchState.LAUNCH;
                 }
                 break;
             case LAUNCH:
-                hardware.leftFeeder().setPower(FULL_SPEED);
-                hardware.rightFeeder().setPower(FULL_SPEED);
+                hardware.feederPower(FULL_SPEED);
                 feederTimer.reset();
                 launchState = LaunchState.LAUNCHING;
                 break;
             case LAUNCHING:
                 if (feederTimer.seconds() > FEED_TIME_SECONDS) {
                     launchState = LaunchState.IDLE;
-                    hardware.leftFeeder().setPower(STOP_SPEED);
-                    hardware.rightFeeder().setPower(STOP_SPEED);
+                    hardware.feederPower(STOP_SPEED);
                 }
                 break;
         }
