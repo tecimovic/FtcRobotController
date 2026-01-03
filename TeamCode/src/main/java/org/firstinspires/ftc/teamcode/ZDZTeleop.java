@@ -236,7 +236,7 @@ public class ZDZTeleop extends OpMode {
                 speedAdjustTimer.reset();
             }
 
-            if (gamepad1.square) {
+            if (gamepad1.squareWasPressed()) {
                 launcherspeed = 60;
                 hardware.setLauncherVelocity(launcherspeed);
             }

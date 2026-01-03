@@ -207,6 +207,9 @@ public class ZDZAuto extends OpMode {
     @Override
     public void start() {
         driveTimer.reset();
+        drive(60,1, DistanceUnit.METER, 10);
+        drive(60,-1,DistanceUnit.METER, 10);
+        rotate(30, 1000, AngleUnit.DEGREES, 10);
     }
 
     /*
