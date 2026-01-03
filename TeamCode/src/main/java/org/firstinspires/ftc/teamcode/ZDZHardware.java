@@ -124,7 +124,7 @@ public class ZDZHardware {
         rightDrive.setPower(speed);
     }
 
-    public void initDrive() {
+    public void initDrive(boolean isAuto) {
 
         /*
          * To drive forward, most robots need the motor on one side to be reversed,
@@ -139,8 +139,10 @@ public class ZDZHardware {
         /*
          * Here we reset the encoders on our drive motors before we start moving.
          */
-        leftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        rightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        if ( isAuto ) {
+            leftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            rightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        }
 
         /*
          * Setting zeroPowerBehavior to BRAKE enables a "brake mode." This causes the motor to

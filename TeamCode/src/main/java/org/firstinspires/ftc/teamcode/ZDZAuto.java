@@ -165,7 +165,7 @@ public class ZDZAuto extends OpMode {
 
         hardware = new ZDZHardware(hardwareMap);
 
-        hardware.initDrive();
+        hardware.initDrive(true);
         hardware.initLauncher();
         hardware.initFeeders();
         // Tell the driver that initialization is complete.

@@ -131,7 +131,7 @@ public class ZDZTeleop extends OpMode {
         launchState = LaunchState.IDLE;
 
         hardware = new ZDZHardware(hardwareMap);
-        hardware.initDrive();
+        hardware.initDrive(false);
         hardware.initLauncher();
         hardware.initFeeders();
 
