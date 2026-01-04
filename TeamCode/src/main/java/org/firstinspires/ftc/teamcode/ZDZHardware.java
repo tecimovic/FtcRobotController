@@ -255,7 +255,7 @@ public class ZDZHardware {
         t.addData("Colors", Math.round(colorSensor().red * 10000) + "/" + Math.round(colorSensor().green * 10000) + "/" + Math.round(colorSensor().blue * 10000));
         t.addData("Motors current", "left (%d), right (%d)", leftDrive.getCurrentPosition(), rightDrive.getCurrentPosition());
         t.addData("Motors target", "left (%d), right (%d)", leftDrive.getTargetPosition(), rightDrive.getTargetPosition());
-        t.addData("Launcher velocity", launcher.getVelocity());
+        t.addData("Launcher", "velocity (%.6f)", launcher.getVelocity());
         t.update();
     }
 

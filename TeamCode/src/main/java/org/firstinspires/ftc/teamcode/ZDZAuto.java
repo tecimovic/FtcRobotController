@@ -236,6 +236,7 @@ public class ZDZAuto extends OpMode {
                 hardware.simpleDrive(0.2);
                 if (driveTimer.milliseconds() > 2000) { // Just drive for 2 seconds for now.
                     hardware.reverseDriveDirection();
+                    hardware.setDrivePower(0.0);
                     autonomousState = AutonomousState.SHOT;
                     driveTimer.reset();
                 }
