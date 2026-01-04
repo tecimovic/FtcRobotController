@@ -139,8 +139,13 @@ public class ZDZAuto extends OpMode {
      * Here is our auto state machine enum. This captures each action we'd like to do in auto.
      */
     private enum AutonomousState {
-        INITIAL_DRIVE_FORWARD, INITIAL_DRIVE_BACKWARD, FULL_STOP;
+        INITIAL_DRIVE_FORWARD,
+        INITIAL_DRIVE_BACKWARD,
+        FULL_STOP,
+        SHOT;
     }
+
+    private int shotCount=3;
 
     private AutonomousState autonomousState;
 
@@ -207,7 +212,7 @@ public class ZDZAuto extends OpMode {
     @Override
     public void start() {
         driveTimer.reset();
-        drive(60,1, DistanceUnit.METER, 10);
+        drive(120,1, DistanceUnit.METER, 10);
         drive(60,-1,DistanceUnit.METER, 10);
         rotate(30, 1000, AngleUnit.DEGREES, 10);
     }
@@ -231,11 +236,21 @@ public class ZDZAuto extends OpMode {
                 hardware.simpleDrive(0.2);
                 if (driveTimer.milliseconds() > 2000) { // Just drive for 2 seconds for now.
                     hardware.reverseDriveDirection();
-                    autonomousState = AutonomousState.INITIAL_DRIVE_BACKWARD;
+                    autonomousState = AutonomousState.SHOT;
                     driveTimer.reset();
                 }
                 break;
 
+            case SHOT:
+                if ( shotCount < 1 ) {
+                    autonomousState = AutonomousState.INITIAL_DRIVE_BACKWARD;
+                    driveTimer.reset();
+                } else {
+                    if ( launch() ) {
+                        shotCount--;
+                    }
+                }
+                break;
             case INITIAL_DRIVE_BACKWARD:
                 hardware.simpleDrive(0.2);
                 if (driveTimer.milliseconds() > 2000) { // Just drive for 2 seconds for now.
@@ -264,18 +279,13 @@ public class ZDZAuto extends OpMode {
      * Launches one ball, when a shot is requested spins up the motor and once it is above a minimum
      * velocity, runs the feeder servos for the right amount of time to feed the next ball.
      *
-     * @param shotRequested "true" if the user would like to fire a new shot, and "false" if a shot
-     *                      has already been requested and we need to continue to move through the
-     *                      state machine and launch the ball.
      * @return "true" for one cycle after a ball has been successfully launched, "false" otherwise.
      */
-    boolean launch(boolean shotRequested) {
+    boolean launch() {
         switch (launchState) {
             case IDLE:
-                if (shotRequested) {
                     launchState = LaunchState.PREPARE;
                     shotTimer.reset();
-                }
                 break;
             case PREPARE:
                 hardware.setLauncherVelocity(LAUNCHER_TARGET_VELOCITY);
