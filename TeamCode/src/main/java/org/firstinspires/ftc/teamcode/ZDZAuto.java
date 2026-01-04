@@ -220,15 +220,7 @@ public class ZDZAuto extends OpMode {
      */
     @Override
     public void loop() {
-        /*
-         * TECH TIP: Switch Statements
-         * switch statements are an excellent way to take advantage of an enum. They work very
-         * similarly to a series of "if" statements, but allow for cleaner and more readable code.
-         * We switch between each enum member and write the code that should run when our enum
-         * reflects that state. We end each case with "break" to skip out of checking the rest
-         * of the members of the enum for a match, since if we find the "break" line in one case,
-         * we know our enum isn't reflecting a different state.
-         */
+
        switch (autonomousState) {
             case INITIAL_DRIVE_FORWARD:
                 hardware.simpleDrive(0.2);

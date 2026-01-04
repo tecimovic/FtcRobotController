@@ -69,7 +69,7 @@ public class ZDZTeleop extends OpMode {
     final double FEED_TIME_SECONDS = 0.20; //The feeder servos run this long when a shot is requested.
     final double STOP_SPEED = 0.0; //We send this power to the servos when we want them to stop.
     final double FULL_SPEED = 1.0;
-    private double launcherspeed = 0;
+    private double presetLauncherVelocity = 0;
 
     private boolean timerwasused = false;
 
@@ -81,8 +81,6 @@ public class ZDZTeleop extends OpMode {
      */
     final double MAX_LAUNCHER_VELOCITY = 1125;
 
-    final double LAUNCHER_TARGET_VELOCITY = 800;
-    //originally 1125
     final double LAUNCHER_MIN_VELOCITY = 700;
     //originally 1075
 
@@ -208,39 +206,40 @@ public class ZDZTeleop extends OpMode {
         if (gamepad1.circleWasPressed()) {
             // We allow the change every 500 ms
             if (speedAdjustTimer.milliseconds() > 500) {
-                launcherspeed = launcherspeed + 10;
-                if (launcherspeed > MAX_LAUNCHER_VELOCITY) {
-                    launcherspeed = MAX_LAUNCHER_VELOCITY;
+                presetLauncherVelocity += 10;
+                if (presetLauncherVelocity > MAX_LAUNCHER_VELOCITY) {
+                    presetLauncherVelocity = MAX_LAUNCHER_VELOCITY;
                 }
-                hardware.setLauncherVelocity(launcherspeed);
+                hardware.setLauncherVelocity(presetLauncherVelocity);
                 // We flash green light when speed goes up by 10.
                 hardware.lightGreen();
                 speedAdjustTimer.reset();
             }
         }
 
+        if (gamepad1.squareWasPressed()) {
+            presetLauncherVelocity = 60;
+            hardware.setLauncherVelocity(presetLauncherVelocity);
+        }
+
         if (gamepad1.crossWasPressed()) {
             // We allow the change every 500 ms
             if (speedAdjustTimer.milliseconds() > 500) {
-                launcherspeed = launcherspeed - 10;
-                if (launcherspeed < 0) {
-                    launcherspeed = STOP_SPEED;
+                presetLauncherVelocity -= 10;
+                if (presetLauncherVelocity < 0) {
+                    presetLauncherVelocity = STOP_SPEED;
                 }
-                hardware.setLauncherVelocity(launcherspeed);
+                hardware.setLauncherVelocity(presetLauncherVelocity);
                 // We flash red light when we go down, and blue when we get to blue.
-                if (launcherspeed == STOP_SPEED) {
+                if (presetLauncherVelocity == STOP_SPEED) {
                     hardware.lightBlue();
                 } else {
                     hardware.lightRed();
                 }
                 speedAdjustTimer.reset();
             }
-
-            if (gamepad1.squareWasPressed()) {
-                launcherspeed = 60;
-                hardware.setLauncherVelocity(launcherspeed);
-            }
         }
+
         if (hardware.frontDistanceInCentimeters() > 20 & hardware.frontDistanceInCentimeters() < 55) {
             hardware.ledsGreen();
         } else {
@@ -251,7 +250,7 @@ public class ZDZTeleop extends OpMode {
             hardware.lightGreen();
         }
         if (gamepad1.dpad_up) {
-            hardware.setLauncherVelocity(LAUNCHER_TARGET_VELOCITY);
+            hardware.setLauncherVelocity(presetLauncherVelocity);
             hardware.lightBlue();
             //leftFeeder.setPower(1.0);
             //rightFeeder.setPower(1.0);
@@ -287,7 +286,7 @@ public class ZDZTeleop extends OpMode {
          */
         telemetry.addData("State", launchState);
         telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
-        telemetry.addData("Set launcher speed", launcherspeed);
+        telemetry.addData("Preset launcher speed", presetLauncherVelocity);
         hardware.showState(telemetry);
     }
 
@@ -317,7 +316,7 @@ public class ZDZTeleop extends OpMode {
                 }
                 break;
             case SPIN_UP:
-                hardware.setLauncherVelocity(LAUNCHER_TARGET_VELOCITY);
+                hardware.setLauncherVelocity(presetLauncherVelocity);
                 if (hardware.getLauncherVelocity() > LAUNCHER_MIN_VELOCITY) {
                     launchState = LaunchState.LAUNCH;
                 }
