@@ -97,6 +97,7 @@ public class ZDZAuto extends OpMode {
     final double ENCODER_TICKS_PER_REV = 537.7;
     final double TICKS_PER_MM = (ENCODER_TICKS_PER_REV / (WHEEL_DIAMETER_MM * Math.PI));
     final double TRACK_WIDTH_MM = 404;
+    final int alexseycanidrive = 0;
 
     int shotsToFire = 3; //The number of shots to fire in this auto.
 
@@ -212,9 +213,6 @@ public class ZDZAuto extends OpMode {
     @Override
     public void start() {
         driveTimer.reset();
-        drive(120,1, DistanceUnit.METER, 10);
-        drive(60,-1,DistanceUnit.METER, 10);
-        rotate(30, 1000, AngleUnit.DEGREES, 10);
     }
 
     /*
@@ -231,7 +229,7 @@ public class ZDZAuto extends OpMode {
          * of the members of the enum for a match, since if we find the "break" line in one case,
          * we know our enum isn't reflecting a different state.
          */
-        switch (autonomousState) {
+       switch (autonomousState) {
             case INITIAL_DRIVE_FORWARD:
                 hardware.simpleDrive(0.2);
                 if (driveTimer.milliseconds() > 2000) { // Just drive for 2 seconds for now.
@@ -240,6 +238,8 @@ public class ZDZAuto extends OpMode {
                     autonomousState = AutonomousState.SHOT;
                     driveTimer.reset();
                 }
+
+                //drive(10,1, DistanceUnit.METER, 10);
                 break;
 
             case SHOT:
