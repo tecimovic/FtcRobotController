@@ -69,7 +69,6 @@ public class ZDZTeleop extends OpMode {
     final double FEED_TIME_SECONDS = 0.20; //The feeder servos run this long when a shot is requested.
     final double STOP_SPEED = 0.0; //We send this power to the servos when we want them to stop.
     final double FULL_SPEED = 1.0;
-    private double presetLauncherVelocity = 0;
 
     private boolean timerwasused = false;
 
@@ -79,10 +78,11 @@ public class ZDZTeleop extends OpMode {
      * velocity. Here we are setting the target, and minimum velocity that the launcher should run
      * at. The minimum velocity is a threshold for determining when to fire.
      */
-    final double MAX_LAUNCHER_VELOCITY = 1125;
+    final double MAX_LAUNCHER_VELOCITY = 1400;
 
-    final double LAUNCHER_MIN_VELOCITY = 700;
-    //originally 1075
+    final double LAUNCHER_MIN_VELOCITY = 800;
+
+    private double presetLauncherVelocity = (MAX_LAUNCHER_VELOCITY+LAUNCHER_MIN_VELOCITY)/2.0;
 
     private ZDZHardware hardware;
 
@@ -175,17 +175,10 @@ public class ZDZTeleop extends OpMode {
      */
     @Override
     public void loop() {
-        /*
-         * Here we call a function called arcadeDrive. The arcadeDrive function takes the input from
-         * the joysticks, and applies power to the left and right drive motor to move the robot
-         * as requested by the driver. "arcade" refers to the control style we're using here.
-         * Much like a classic arcade game, when you move the left joystick forward both motors
-         * work to drive the robot forward, and when you move the right joystick left and right
-         * both motors work to rotate the robot. Combinations of these inputs can be used to create
-         * more complex maneuvers.
-         */
+
         arcadeDrive(-gamepad1.left_stick_y, gamepad1.right_stick_x);
 
+        // Timer for speed adjustment
         if (speedAdjustTimer.milliseconds() > 250) {
             hardware.lightOff();
         }
@@ -195,6 +188,7 @@ public class ZDZTeleop extends OpMode {
             timer.reset();
             timerwasused = true;
         }
+
         if (timer.seconds() >= 0.1) {
             if (timerwasused) {
                 hardware.feederPower(0.0);
@@ -218,7 +212,7 @@ public class ZDZTeleop extends OpMode {
         }
 
         if (gamepad1.squareWasPressed()) {
-            presetLauncherVelocity = 60;
+            presetLauncherVelocity = 1160;
             hardware.setLauncherVelocity(presetLauncherVelocity);
         }
 
@@ -226,8 +220,8 @@ public class ZDZTeleop extends OpMode {
             // We allow the change every 500 ms
             if (speedAdjustTimer.milliseconds() > 500) {
                 presetLauncherVelocity -= 10;
-                if (presetLauncherVelocity < 0) {
-                    presetLauncherVelocity = STOP_SPEED;
+                if (presetLauncherVelocity < LAUNCHER_MIN_VELOCITY) {
+                    presetLauncherVelocity = LAUNCHER_MIN_VELOCITY;
                 }
                 hardware.setLauncherVelocity(presetLauncherVelocity);
                 // We flash red light when we go down, and blue when we get to blue.
@@ -246,7 +240,7 @@ public class ZDZTeleop extends OpMode {
             hardware.ledsRed();
         }
 
-        if (hardware.getLauncherVelocity() >= LAUNCHER_MIN_VELOCITY) {
+        if (hardware.getLauncherVelocity() >= presetLauncherVelocity) {
             hardware.lightGreen();
         }
         if (gamepad1.dpad_up) {
@@ -261,25 +255,11 @@ public class ZDZTeleop extends OpMode {
             //rightFeeder.setPower(0.0);
         }
 
-        if (gamepad1.leftBumperWasPressed()) {
-            for (int x = 0; x <= 10; x++) {
-                hardware.lightwhee();
-            }
-            hardware.lightOff();
-
-        }
-
         if (gamepad1.dpad_left) {
             hardware.feederPower(-1.0);
-
         } else if (gamepad1.dpad_right) {
             hardware.feederPower(0.0);
         }
-
-        /*
-         * Now we call our "Launch" function.
-         */
-        launch(gamepad1.rightBumperWasPressed());
 
         /*
          * Show the state and motor powers
@@ -306,32 +286,5 @@ public class ZDZTeleop extends OpMode {
          * Send calculated power to wheels
          */
         hardware.drivePower(leftPower, rightPower);
-    }
-
-    void launch(boolean shotRequested) {
-        switch (launchState) {
-            case IDLE:
-                if (shotRequested) {
-                    launchState = LaunchState.SPIN_UP;
-                }
-                break;
-            case SPIN_UP:
-                hardware.setLauncherVelocity(presetLauncherVelocity);
-                if (hardware.getLauncherVelocity() > LAUNCHER_MIN_VELOCITY) {
-                    launchState = LaunchState.LAUNCH;
-                }
-                break;
-            case LAUNCH:
-                hardware.feederPower(FULL_SPEED);
-                feederTimer.reset();
-                launchState = LaunchState.LAUNCHING;
-                break;
-            case LAUNCHING:
-                if (feederTimer.seconds() > FEED_TIME_SECONDS) {
-                    launchState = LaunchState.IDLE;
-                    hardware.feederPower(STOP_SPEED);
-                }
-                break;
-        }
     }
 }
